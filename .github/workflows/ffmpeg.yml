@@ -54,7 +54,7 @@ jobs:
           cmake --version
           clang --version
           vcpkg install ffmpeg[opengl,ass,bzip2,freetype,fribidi,zlib] --triplet x64-osx
-          
+
       - name: Install dependencies on ubuntu
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -64,3 +64,5 @@ jobs:
           cmake --version
           gcc --version
           vcpkg install ffmpeg[opengl,ass,bzip2,freetype,fribidi,zlib] --triplet x64-linux
+
+          
