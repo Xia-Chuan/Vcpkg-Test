@@ -1,0 +1,66 @@
+name: CMake Build
+
+on: 
+  # push代码时触发workflow
+  push:
+    paths-ignore: # 下列文件的变更不触发部署，可以自行添加
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+  pull_request:
+    paths-ignore: # 下列文件的变更不触发部署，可以自行添加'
+        - '.gitignore'
+        - 'LICENSE'
+        - 'README*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+          - ubuntu-latest
+
+    steps:
+      - name: cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            C:\vcpkg\installed
+            /usr/local/share/vcpkg/installed
+          key: ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-installed-${{ matrix.os }}-
+            ${{ runner.os }}-vcpkg-installed-
+
+      - name: Install dependencies on windows
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install ninja
+          ninja --version
+          cmake --version
+          vcpkg install ffmpeg[opengl,ass,bzip2,freetype,fribidi,zlib] --triplet x64-windows
+
+      - name: Install dependencies on macos
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          brew install ninja nasm pkg-config
+          ninja --version
+          cmake --version
+          clang --version
+          vcpkg install ffmpeg[opengl,ass,bzip2,freetype,fribidi,zlib] --triplet x64-osx
+          
+      - name: Install dependencies on ubuntu
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build nasm build-essential libgl1-mesa-dev
+          ninja --version
+          cmake --version
+          gcc --version
+          vcpkg install ffmpeg[opengl,ass,bzip2,freetype,fribidi,zlib] --triplet x64-linux
